@@ -149,7 +149,7 @@ template <size_t MaxIndex>
 class BitVector2 : public Storage<MaxIndex / 8> {};
 
 
-TEST_CASE("Set and clear bits", "[bitvector]") {
+TEST_CASE("Set and clear bits first BitVector", "[column1_2]") {
     // Storage<8> s8;
     // Storage<1> s1;
     
@@ -186,7 +186,7 @@ TEST_CASE("Set and clear bits", "[bitvector]") {
     REQUIRE(bv.none() == false);
 }
 
-TEST_CASE("Set and clear bits for non-specialized BitVector2", "[bitvector2]") {
+TEST_CASE("Set and clear bits for non-specialized BitVector2", "[column1_2]") {
     BitVector2<128> bv;
     REQUIRE(bv.isset(0) == false);
     REQUIRE(bv.isset(1) == false);
@@ -220,7 +220,7 @@ TEST_CASE("Set and clear bits for non-specialized BitVector2", "[bitvector2]") {
     REQUIRE(bv.none() == false);
 }
 
-TEST_CASE("Set and clear bits for BitVector<32>", "[bitvector2]") {
+TEST_CASE("Set and clear bits for BitVector<32>", "[column1_2]") {
     BitVector2<32> bv;
     REQUIRE(bv.isset(0) == false);
     REQUIRE(bv.isset(1) == false);
