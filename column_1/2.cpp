@@ -138,31 +138,10 @@ private:
     value_type val;
 };
 
-// template <> struct Storage<1> {
-// public:
-//     constexpr Storage() noexcept : val{0u} {}
-//     constexpr void set(size_t bit) noexcept {
-//         val |= mask(bit);
-//     }
-//     [[nodiscard]] constexpr bool isset(size_t bit) noexcept {
-//         return (val & mask(bit)) != 0u;
-//     }
-//     constexpr void clear() noexcept {
-//         val = 0u;
-//     }
-// private:
-//     [[nodiscard]] constexpr uint8_t mask(size_t off) noexcept {
-//         assert(off < sizeof(val)*8);
-//         return uint8_t{0} << off;
-//     }
-    
-//     uint8_t val;
-// };
-
-template <> class Storage<1> : StorageBase<uint8_t>  {};
-template <> class Storage<2> : StorageBase<uint16_t> {};
-template <> class Storage<4> : StorageBase<uint32_t> {};
-template <> class Storage<8> : StorageBase<uint64_t> {};
+template <> class Storage<1> : public StorageBase<uint8_t>  {};
+template <> class Storage<2> : public StorageBase<uint16_t> {};
+template <> class Storage<4> : public StorageBase<uint32_t> {};
+template <> class Storage<8> : public StorageBase<uint64_t> {};
 
 // TODO(peter): if MaxIndex < 64, can I use a uint64_t instead?
 // TODO(peter): should be able to figure out MaxIndex given MaxValue
@@ -234,6 +213,40 @@ TEST_CASE("Set and clear bits for non-specialized BitVector2", "[bitvector2]") {
     assert(bv.all() == false);
 
     for (int i = 0; i < 128; ++i) {
+        bv.set(i);
+        REQUIRE(bv.isset(i) == true);
+    }
+    REQUIRE(bv.all() == true);
+    REQUIRE(bv.none() == false);
+}
+
+TEST_CASE("Set and clear bits for BitVector<32>", "[bitvector2]") {
+    BitVector2<32> bv;
+    REQUIRE(bv.isset(0) == false);
+    REQUIRE(bv.isset(1) == false);
+    REQUIRE(bv.isset(3) == false);
+    REQUIRE(bv.isset(31) == false);
+    REQUIRE(bv.isset(21) == false);
+    REQUIRE(bv.isset(15) == false);
+    REQUIRE(bv.none() == true);
+    REQUIRE(bv.all() == false);
+
+    bv.set(4);
+    assert(bv.isset(4) == true);
+    assert(bv.none() == false);
+    assert(bv.all() == false);
+    assert(bv.isset(3) == false);
+    assert(bv.isset(2) == false);
+    assert(bv.isset(1) == false);
+
+    bv.set(31);
+    assert(bv.isset(4) == true);
+    assert(bv.isset(3) == false);
+    assert(bv.isset(31) == true);
+    assert(bv.none() == false);
+    assert(bv.all() == false);
+
+    for (int i = 0; i < 32; ++i) {
         bv.set(i);
         REQUIRE(bv.isset(i) == true);
     }
