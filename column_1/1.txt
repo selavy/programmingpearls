@@ -1,0 +1,5 @@
+1. If memory were not scarce, how would you implement a sort in a language with
+libraries for representing and sorting sets?
+
++If don't have or care about duplicates, then insert all elements into set then
+sort the sets and output.
