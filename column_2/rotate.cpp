@@ -37,6 +37,28 @@ namespace pcl {
         std::cout << "swaps = " << swaps << "\n";
     }
 
+    // // Performs a left rotation on a range of elements.
+    // // Specifically, rotate swaps the elements in the range [first, last) in
+    // // such a way that the element n_first becomes the first element of the new range and
+    // // n_first - 1 becomes the last element
+    // // 
+    // // Returns: The iterator equal to first + (last - n_first)
+    // //
+    // // Complexity: Linear in the distance between first and last
+    // template <class ForwardIt>
+    // ForwardIt rotate2(ForwardIt first, ForwardIt n_first, ForwardIt last) {
+    //     auto BEGIN = first;
+    //     auto END   = last;
+        
+    //     ForwardIt next = n_first;
+    //     do {
+    //         print_range(BEGIN, END);
+    //         std::iter_swap(first++, next++);
+    //     } while (next != last);
+
+    //     return first;
+    // }
+
     template <class ForwardIt>
     ForwardIt rotate2(ForwardIt first, ForwardIt n_first, ForwardIt last) {
         int swaps = 0;
@@ -85,23 +107,23 @@ void print(const std::vector<T>& vec) {
 }
 
 int main(int argc, char **argv) {
-    // {
-    //     // Input:  a b c d e f g h
-    //     // rotate_left(3)
-    //     // Output: d e f g h a b c
-    //     std::vector<char> vec = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
-    //     print(vec);
-    //     std::rotate(vec.begin(), vec.begin()+3, vec.end());
-    //     print(vec);
-    // }
+    {
+        // Input:  a b c d e f g h
+        // rotate_left(3)
+        // Output: d e f g h a b c
+        std::vector<char> vec = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+        print(vec);
+        std::rotate(vec.begin(), vec.begin()+3, vec.end());
+        print(vec);
+    }
 
-    // {
-    //     std::cout << "\n";
-    //     std::vector<char> vec = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
-    //     print(vec);
-    //     std::rotate(vec.begin()+3, vec.begin(), vec.end());
-    //     print(vec);
-    // }
+    {
+        std::cout << "\n";
+        std::vector<char> vec = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+        print(vec);
+        std::rotate(vec.begin()+3, vec.begin(), vec.end());
+        print(vec);
+    }
 
     {
         std::vector<char> vec = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
@@ -116,6 +138,14 @@ int main(int argc, char **argv) {
         pcl::rotate2(vec.begin(), vec.begin()+3, vec.end());
         print(vec);
     }
+
+
+    // {
+    //     std::vector<char> vec = { 'a', 'b', 'c', 'd', 'e' };
+    //     //print(vec);
+    //     pcl::rotate2(vec.begin(), vec.begin()+3, vec.end());
+    //     //print(vec);
+    // }
     
     return 0;
 }
