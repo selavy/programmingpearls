@@ -178,18 +178,18 @@ namespace my {
 // To be pedantically correct, BidirectionalIterator does not
 // support operator<
 
-template <typename BidirectionalIterator>
-void reverse(BidirectionalIterator first, BidirectionalIterator last,
+template <typename BidirectionalIt>
+void reverse(BidirectionalIt first, BidirectionalIt last,
         std::bidirectional_iterator_tag)
 {
-    while (first != last && first != --last) {
+    while ((first != last) && (first != --last)) {
         std::iter_swap(first++, last);
     }
 }
 
 
-template <typename RandomAccessIterator>
-void reverse(RandomAccessIterator first, RandomAccessIterator last,
+template <typename RandomAccessIt>
+void reverse(RandomAccessIt first, RandomAccessIt last,
         std::random_access_iterator_tag)
 {
     if (first == last) {
@@ -200,16 +200,48 @@ void reverse(RandomAccessIterator first, RandomAccessIterator last,
     }
 }
 
-template <typename BidirectionalIterator>
-void reverse(BidirectionalIterator first, BidirectionalIterator last) {
-    using iterator_category = typename std::iterator_traits<BidirectionalIterator>::iterator_category;
+template <typename BidirectionalIt>
+void reverse(BidirectionalIt first, BidirectionalIt last)
+{
+    using iterator_category = typename std::iterator_traits<BidirectionalIt>::iterator_category;
     reverse(first, last, iterator_category());
 }
 
 template <class Cont>
-auto reverse_copy(Cont cont) {
+auto reverse_copy(Cont cont)
+{
     my::reverse(std::begin(cont), std::end(cont));
     return cont;
+}
+
+template <class ForwardIt>
+void print_range(ForwardIt first, ForwardIt last)
+{
+    while (first != last) {
+        std::cout << *first++ << " ";
+    }
+    std::cout << "\n";
+}
+
+// NOTE(peter): the std algorithms only constrains to ForwardIt,
+//              but since I'm using reverse, I have to constrain
+//              to BidirectionIterator.
+
+// template <class ForwardIt>
+// void rotate(ForwardIt first, ForwardIt n_first, ForwardIt last)
+template <class BidirectionalIt>
+void rotate(BidirectionalIt first, BidirectionalIt n_first, BidirectionalIt last)
+{
+    // n_first - first swaps
+    my::reverse(first, n_first);
+    // last - n_first swaps
+    my::reverse(n_first, last);
+    // last - first swaps
+    my::reverse(first, last);
+    // (n_first - first) + (last - n_first) + (last - first)
+    // = n_first - first + last - n_first + last - first]
+    // = 2*last - 2*first
+    // = 2*(last - first) = O(2N)
 }
 
 } // ~namespace my
@@ -295,3 +327,92 @@ TEST_CASE("Reverse", "Reverse portion of array part of rotate") {
 
 }
 
+template <typename ForwardIt>
+ForwardIt adv(ForwardIt it, int dist) {
+    while (dist-- > 0) {
+        ++it;
+    }
+    return it;
+}
+
+
+TEST_CASE("Rotate", "rotate using reverse algo")
+{
+    // Tests using RandomAccessIterator
+    SECTION("Rotate around middle")
+    {
+        std::vector<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        int i = 5;
+        auto v1 = vs;
+        my::rotate(v1.begin(), v1.begin()+i, v1.end());
+        REQUIRE(v1[0] == vs[i]);
+        auto v2 = vs;
+        std::rotate(v2.begin(), v2.begin()+i, v2.end());
+        REQUIRE(v2[0] == vs[i]);
+        REQUIRE(v1 == v2);
+    }
+
+    SECTION("Rotate less")
+    {
+        std::vector<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        int i = 1;
+        auto v1 = vs;
+        my::rotate(v1.begin(), v1.begin()+i, v1.end());
+        REQUIRE(v1[0] == vs[i]);
+        auto v2 = vs;
+        std::rotate(v2.begin(), v2.begin()+i, v2.end());
+        REQUIRE(v2[0] == vs[i]);
+        REQUIRE(v1 == v2);
+    }
+
+    SECTION("Rotate noop")
+    {
+        std::vector<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        auto v1 = vs;
+        my::rotate(v1.begin(), v1.begin(), v1.end());
+        REQUIRE(v1 == vs);
+        auto v2 = vs;
+        std::rotate(v2.begin(), v2.begin(), v2.end());
+        REQUIRE(v2 == vs);
+        REQUIRE(v1 == v2);
+    }
+
+    // Tests using BidirectionalIterator
+    SECTION("Rotate around middle")
+    {
+        std::list<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        int i = 5;
+        auto v1 = vs;
+        my::rotate(v1.begin(), adv(v1.begin(), i), v1.end());
+        REQUIRE(v1.front() == *adv(vs.begin(), i));
+        auto v2 = vs;
+        std::rotate(v2.begin(), adv(v2.begin(), i), v2.end());
+        REQUIRE(v2.front() == *adv(vs.begin(), i));
+        REQUIRE(v1 == v2);
+    }
+
+    SECTION("Rotate less")
+    {
+        std::list<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        int i = 1;
+        auto v1 = vs;
+        my::rotate(v1.begin(), adv(v1.begin(), i), v1.end());
+        REQUIRE(v1.front() == *adv(vs.begin(), i));
+        auto v2 = vs;
+        std::rotate(v2.begin(), adv(v2.begin(), i), v2.end());
+        REQUIRE(v2.front() == *adv(vs.begin(), i));
+        REQUIRE(v1 == v2);
+    }
+
+    SECTION("Rotate noop")
+    {
+        std::list<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        auto v1 = vs;
+        my::rotate(v1.begin(), v1.begin(), v1.end());
+        REQUIRE(v1 == vs);
+        auto v2 = vs;
+        std::rotate(v2.begin(), v2.begin(), v2.end());
+        REQUIRE(v2 == vs);
+        REQUIRE(v1 == v2);
+    }
+}
