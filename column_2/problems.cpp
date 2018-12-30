@@ -244,6 +244,40 @@ void rotate(BidirectionalIt first, BidirectionalIt n_first, BidirectionalIt last
     // = 2*(last - first) = O(2N)
 }
 
+template <class It>
+void rotate2(It first, It n_first, It last) {
+    print_range(first, last);
+
+    using Distance = typename std::iterator_traits<It>::difference_type;
+    using ValueType = typename std::iterator_traits<It>::value_type;
+    Distance n = last - first;
+    Distance i = n_first - first;
+    // int moves = 0;
+
+    for (Distance u = 0; u < 1; ++u) {
+        Distance j = i + u;
+        Distance k = j+i;
+        Distance z = k % n;
+        ValueType t = *(first + u);
+        *(first + u) = *(first + j);
+        // ++moves;
+        do {
+            *(first + j) = *(first + z);
+            // ++moves;
+            j = z;
+            k += i;
+            z = k % n;
+        } while (z != 0);
+        *(first + j) = t;
+
+        // if (moves >= n) {
+        //     break;
+        // }
+    }
+
+    print_range(first, last);
+}
+
 } // ~namespace my
 
 TEST_CASE("Reverse", "Reverse portion of array part of rotate") {
@@ -375,6 +409,23 @@ TEST_CASE("Rotate", "rotate using reverse algo")
         std::rotate(v2.begin(), v2.begin(), v2.end());
         REQUIRE(v2 == vs);
         REQUIRE(v1 == v2);
+    }
+
+    SECTION("Rotate #2")
+    {
+        std::cout << "SECOND ROTATE ALGO\n";
+        //std::vector<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        std::vector<int> vs = { 1, 2, 3, 4, 5 };
+        my::print_range(vs.begin(), vs.end());
+        int i = 3;
+        auto v1 = vs;
+        my::rotate2(v1.begin(), v1.begin()+i, v1.end());
+        std::cout << "ANSWER FROM ALGO #2:\n";
+        my::print_range(v1.begin(), v1.end());
+        auto v2 = vs;
+        std::rotate(v2.begin(), v2.begin()+i, v2.end());
+        std::cout << "CORRECT ANSWER:\n";
+        my::print_range(v2.begin(), v2.end());
     }
 
     // Tests using BidirectionalIterator
