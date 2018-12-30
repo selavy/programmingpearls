@@ -10,13 +10,13 @@
 #include <memory>
 
 
-template <class T, class A>
-void print_vector(const std::vector<T, A>& vec) {
-    for (auto&& i: vec) {
-        std::cout << i << " ";
-    }
-    std::cout << "\n";
-}
+// template <class T, class A>
+// void print_vector(const std::vector<T, A>& vec) {
+//     for (auto&& i: vec) {
+//         std::cout << i << " ";
+//     }
+//     std::cout << "\n";
+// }
 
 
 TEST_CASE("Problem #2.1a", "Find missing integer") {
@@ -80,12 +80,10 @@ TEST_CASE("Problem #2.1a", "Find missing integer") {
         I answer = -1;
         for (I i = 0; i < max_value; ++i) {
             if (!bv->isset(i)) {
-                // std::cout << i << "\n";
                 answer = i;
                 break;
             }
         }
-        std::cout << "Answer #1: " << answer << "\n";
         REQUIRE(answer != -1);
         for (auto v: vs) {
             REQUIRE(v != answer);
@@ -109,12 +107,10 @@ TEST_CASE("Problem #2.1a", "Find missing integer") {
             }
         }
 
-        std::cout << "Answer #2: " << answer << "\n";
+//         for (int i = 0; i < 20; ++i) {
+//             std::cout << vs[i] << " ";
+//         }
 
-        for (int i = 0; i < 20; ++i) {
-            std::cout << vs[i] << " ";
-        }
-        
         for (auto v: vs) {
             REQUIRE(v != answer);
         }

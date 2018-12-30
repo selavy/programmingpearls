@@ -22,4 +22,15 @@ apt install -y python
 apt install -y cmake
 apt install -y htop
 apt install -y curl
+apt install -y tmux
 
+# # Build NeoVim
+# # NOTE(peter): Either do this BEFORE install anaconda OR remove anaconda from 
+# # PATH because it is using the wrong libtool.  (or just install with package
+# # manager)
+git clone https://github.com/neovim/neovim
+apt install -y libtool
+apt install -y libtool-bin
+apt install -y pkg-config
+cd neovim
+make CMAKE_BUILD_TYPE=Release
