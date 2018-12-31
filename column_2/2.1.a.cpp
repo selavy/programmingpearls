@@ -10,15 +10,6 @@
 #include <memory>
 
 
-// template <class T, class A>
-// void print_vector(const std::vector<T, A>& vec) {
-//     for (auto&& i: vec) {
-//         std::cout << i << " ";
-//     }
-//     std::cout << "\n";
-// }
-
-
 TEST_CASE("Problem #2.1a", "Find missing integer") {
     // Given a sequential file that contains at most four billion 32-bit integers
     // in random order, find a 32-bit integer that isn't in the file (and there
@@ -36,7 +27,7 @@ TEST_CASE("Problem #2.1a", "Find missing integer") {
 
     // // Note(peter): If we want unique numbers use this.  But decided there's
     // //              no reason they should be unique for this challenge.
-    
+
     // constexpr size_t N = 10;
     // std::vector<uint32_t> vs;
     // vs.reserve(N);
@@ -106,10 +97,6 @@ TEST_CASE("Problem #2.1a", "Find missing integer") {
                 }
             }
         }
-
-//         for (int i = 0; i < 20; ++i) {
-//             std::cout << vs[i] << " ";
-//         }
 
         for (auto v: vs) {
             REQUIRE(v != answer);

@@ -159,7 +159,7 @@ TEST_CASE("Problem 2.6.2", "duplicate") {
 namespace my {
 
 // template <class BidirIt>
-// // NOTE(peter): just begin pedantic and enforcing that the iterator is infact a BidirectionalIterator
+// // NOTE(peter): just begin pedantic and enforcing that the iterator is in fact a BidirectionalIterator
 // std::enable_if_t<
 //     std::is_base_of<
 //         std::bidirectional_iterator_tag,
@@ -244,38 +244,84 @@ void rotate(BidirectionalIt first, BidirectionalIt n_first, BidirectionalIt last
     // = 2*(last - first) = O(2N)
 }
 
+template<typename Iter>
+Iter __rotate(Iter first, Iter middle, Iter last)
+{
+
+    using Distance  = typename std::iterator_traits<Iter>::difference_type;
+    using ValueType = typename std::iterator_traits<Iter>::value_type;
+
+    Distance n = last   - first;
+    Distance k = middle - first;
+
+    Iter p = first;
+    Iter ret = first + (last - middle);
+
+    for (;;) {
+        if (k < n - k) {
+            Iter q = p + k;
+            for (Distance i = 0; i < n - k; ++i) {
+                std::iter_swap(p, q);
+                ++p;
+                ++q;
+            }
+            n %= k;
+            if (n == 0) {
+                return ret;
+            }
+            std::swap(n, k);
+            k = n - k;
+        } else {
+            k = n - k;
+            Iter q = p + n;
+            p = q - k;
+            for (Distance i = 0; i < n - k; ++i) {
+                --p;
+                --q;
+                std::iter_swap(p, q);
+            }
+            n %= k;
+            if (n == 0) {
+                return ret;
+            }
+            std::swap(n, k);
+        }
+    }
+}
+
+template <class I>
+I gcd(I m, I n) {
+    while (n != 0) {
+        I t = m % n;
+        m = n;
+        n = t;
+    }
+    return m;
+}
+
+// NOTE(peter): Only works for random access iterators
 template <class It>
 void rotate2(It first, It n_first, It last) {
-    print_range(first, last);
-
     using Distance = typename std::iterator_traits<It>::difference_type;
     using ValueType = typename std::iterator_traits<It>::value_type;
+
     Distance n = last - first;
     Distance i = n_first - first;
-    // int moves = 0;
-
-    for (Distance u = 0; u < 1; ++u) {
+    Distance cycles = gcd(i, n);
+    for (Distance u = 0; u < cycles; ++u) {
         Distance j = i + u;
-        Distance k = j+i;
+        Distance k = j + i;
         Distance z = k % n;
         ValueType t = *(first + u);
         *(first + u) = *(first + j);
-        // ++moves;
         do {
             *(first + j) = *(first + z);
-            // ++moves;
             j = z;
             k += i;
             z = k % n;
-        } while (z != 0);
+        } while (z != u);
         *(first + j) = t;
-
-        // if (moves >= n) {
-        //     break;
-        // }
     }
-
-    print_range(first, last);
 }
 
 } // ~namespace my
@@ -378,10 +424,16 @@ TEST_CASE("Rotate", "rotate using reverse algo")
         std::vector<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         int i = 5;
         auto v1 = vs;
-        my::rotate(v1.begin(), v1.begin()+i, v1.end());
+        std::rotate(v1.begin(), v1.begin()+i, v1.end());
         REQUIRE(v1[0] == vs[i]);
+
         auto v2 = vs;
-        std::rotate(v2.begin(), v2.begin()+i, v2.end());
+        my::rotate(v2.begin(), v2.begin()+i, v2.end());
+        REQUIRE(v2[0] == vs[i]);
+        REQUIRE(v1 == v2);
+
+        v2 = vs;
+        my::rotate2(v2.begin(), v2.begin()+i, v2.end());
         REQUIRE(v2[0] == vs[i]);
         REQUIRE(v1 == v2);
     }
@@ -391,10 +443,16 @@ TEST_CASE("Rotate", "rotate using reverse algo")
         std::vector<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         int i = 1;
         auto v1 = vs;
-        my::rotate(v1.begin(), v1.begin()+i, v1.end());
+        std::rotate(v1.begin(), v1.begin()+i, v1.end());
         REQUIRE(v1[0] == vs[i]);
+
         auto v2 = vs;
-        std::rotate(v2.begin(), v2.begin()+i, v2.end());
+        my::rotate(v2.begin(), v2.begin()+i, v2.end());
+        REQUIRE(v2[0] == vs[i]);
+        REQUIRE(v1 == v2);
+
+        v2 = vs;
+        my::rotate2(v2.begin(), v2.begin()+i, v2.end());
         REQUIRE(v2[0] == vs[i]);
         REQUIRE(v1 == v2);
     }
@@ -402,30 +460,20 @@ TEST_CASE("Rotate", "rotate using reverse algo")
     SECTION("Rotate noop")
     {
         std::vector<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        int i = 0;
         auto v1 = vs;
-        my::rotate(v1.begin(), v1.begin(), v1.end());
-        REQUIRE(v1 == vs);
-        auto v2 = vs;
-        std::rotate(v2.begin(), v2.begin(), v2.end());
-        REQUIRE(v2 == vs);
-        REQUIRE(v1 == v2);
-    }
+        std::rotate(v1.begin(), v1.begin()+i, v1.end());
+        REQUIRE(v1[0] == vs[i]);
 
-    SECTION("Rotate #2")
-    {
-        std::cout << "SECOND ROTATE ALGO\n";
-        //std::vector<int> vs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        std::vector<int> vs = { 1, 2, 3, 4, 5 };
-        my::print_range(vs.begin(), vs.end());
-        int i = 3;
-        auto v1 = vs;
-        my::rotate2(v1.begin(), v1.begin()+i, v1.end());
-        std::cout << "ANSWER FROM ALGO #2:\n";
-        my::print_range(v1.begin(), v1.end());
         auto v2 = vs;
-        std::rotate(v2.begin(), v2.begin()+i, v2.end());
-        std::cout << "CORRECT ANSWER:\n";
-        my::print_range(v2.begin(), v2.end());
+        my::rotate(v2.begin(), v2.begin()+i, v2.end());
+        REQUIRE(v2[0] == vs[i]);
+        REQUIRE(v1 == v2);
+
+        v2 = vs;
+        my::rotate2(v2.begin(), v2.begin()+i, v2.end());
+        REQUIRE(v2[0] == vs[i]);
+        REQUIRE(v1 == v2);
     }
 
     // Tests using BidirectionalIterator
@@ -466,4 +514,126 @@ TEST_CASE("Rotate", "rotate using reverse algo")
         REQUIRE(v2 == vs);
         REQUIRE(v1 == v2);
     }
+}
+
+namespace my {
+
+// NOTE(peter): for some reason in his diagram, 'Q' and 'Z' are not
+//              present...
+//              Otherwise could do sign(char c) = (upper(c) - 65) // 3
+
+const std::map<char, char> ButtonMap = {
+    { 'A', '2'},
+    { 'B', '2'},
+    { 'C', '2'},
+
+    { 'D', '3'},
+    { 'E', '3'},
+    { 'F', '3'},
+
+    { 'G', '4'},
+    { 'H', '4'},
+    { 'I', '4'},
+
+    { 'J', '5'},
+    { 'K', '5'},
+    { 'L', '5'},
+
+    { 'M', '6'},
+    { 'N', '6'},
+    { 'O', '6'},
+
+    { 'P', '7'},
+    { 'R', '7'},
+    { 'S', '7'},
+
+    { 'T', '8'},
+    { 'U', '8'},
+    { 'V', '8'},
+
+    { 'W', '9'},
+    { 'X', '9'},
+    { 'Y', '9'},
+};
+
+[[nodiscard]]
+std::string telesign(std::string first, std::string last) noexcept
+{
+    std::string rv;
+    for (auto c: last) {
+        auto found = ButtonMap.find(std::toupper(c));
+        if (found != ButtonMap.end()) {
+            rv += found->second;
+        }
+    }
+    rv += '*';
+
+    for (auto c: first) {
+        auto found = ButtonMap.find(std::toupper(c));
+        if (found != ButtonMap.end()) {
+            rv += found->second;
+        }
+        break;
+    }
+    rv += '*';
+    return rv;
+}
+
+} // ~namespace my
+
+TEST_CASE("Problem #6", "Push-button telephone")
+{
+    // In the last 1970's, Bell Labs deployed a "user-operated directory assistance" pro-
+    // gram that allowed employees to look up a number in a company telephony direc-
+    // tory using a standard push-button telephone.
+    //
+    // To find the number of the designer of the system, Mike Lesk, one pressed
+    // "LESK*M*" (that is, "5375*6*") and the system spoke his number. Such ser-
+    // vices are now ubiquitous. One problem that arises in such systems is that different
+    // names may have the same push-button encoding; when this happens in Lesk's sys-
+    // tem, is asks the user for more information. Given a large file of names, such as a
+    // standard metropolitan telephone directory, how would you locate these "false
+    // matches"? (When Lesk did this experiment on such telephone directories, he
+    // found that the incidence of false matches was just 0.2 percent.) How would you
+    // implement the function that is given a push-button encoding of a name and returns
+    // the set of possible matching names?
+
+    using Name = std::pair<std::string, std::string>;
+    using Directory = std::vector<Name>;
+    const Directory directory = {
+        { "Mike", "Lesk" },
+        { "Peter", "Lesslie"},
+        { "Luke", "Lesslie"},
+        { "Paul", "Peters"},
+        { "Jordan", "Kane"},
+        { "Joe", "Smith"},
+        { "Jane", "Smith"},
+        { "Jake", "Gipple"},
+    };
+
+    using Cache = std::map<std::string, std::vector<Name>>;
+    Cache cache;
+    for (auto&& c: directory) {
+        const auto sig = my::telesign(c.first, c.second);
+        cache[sig].push_back(c);
+    }
+
+    // for (auto&& c: cache) {
+    //     auto&& sig = c.first;
+    //     auto&& names = c.second;
+    //     std::cout << sig << " => ";
+    //     for (auto&& name: names) {
+    //         std::cout << name.first << " " << name.second << ", ";
+    //     }
+    //     std::cout << "\n";
+    // }
+
+    using Results = std::vector<Name>;
+    auto&& lookup = [&cache](const std::string& sig) -> Results {
+        auto&& found = cache.find(sig);
+        return found == cache.end() ? Results{} : found->second;
+    };
+
+    REQUIRE(lookup("5375*6*") == Results{Name{"Mike", "Lesk"}});
+    REQUIRE(lookup("5377543*7*") == Results{Name{"Peter", "Lesslie"}});
 }
