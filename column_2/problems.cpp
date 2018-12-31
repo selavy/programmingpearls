@@ -180,7 +180,7 @@ namespace my {
 
 template <typename BidirectionalIt>
 void reverse(BidirectionalIt first, BidirectionalIt last,
-        std::bidirectional_iterator_tag)
+        std::bidirectional_iterator_tag) noexcept
 {
     while ((first != last) && (first != --last)) {
         std::iter_swap(first++, last);
@@ -190,7 +190,7 @@ void reverse(BidirectionalIt first, BidirectionalIt last,
 
 template <typename RandomAccessIt>
 void reverse(RandomAccessIt first, RandomAccessIt last,
-        std::random_access_iterator_tag)
+        std::random_access_iterator_tag) noexcept
 {
     if (first == last) {
         return;
@@ -201,7 +201,7 @@ void reverse(RandomAccessIt first, RandomAccessIt last,
 }
 
 template <typename BidirectionalIt>
-void reverse(BidirectionalIt first, BidirectionalIt last)
+void reverse(BidirectionalIt first, BidirectionalIt last) noexcept
 {
     using iterator_category = typename std::iterator_traits<BidirectionalIt>::iterator_category;
     reverse(first, last, iterator_category());
@@ -230,8 +230,10 @@ void print_range(ForwardIt first, ForwardIt last)
 // template <class ForwardIt>
 // void rotate(ForwardIt first, ForwardIt n_first, ForwardIt last)
 template <class BidirectionalIt>
-void rotate(BidirectionalIt first, BidirectionalIt n_first, BidirectionalIt last)
+void rotate(BidirectionalIt first, BidirectionalIt n_first, BidirectionalIt last) noexcept
 {
+    // NOTE(peter): if your swap throws then fuck you
+
     // n_first - first swaps
     my::reverse(first, n_first);
     // last - n_first swaps
@@ -245,7 +247,7 @@ void rotate(BidirectionalIt first, BidirectionalIt n_first, BidirectionalIt last
 }
 
 template<typename Iter>
-Iter __rotate(Iter first, Iter middle, Iter last)
+Iter __rotate(Iter first, Iter middle, Iter last) noexcept
 {
 
     using Distance  = typename std::iterator_traits<Iter>::difference_type;
@@ -290,7 +292,8 @@ Iter __rotate(Iter first, Iter middle, Iter last)
 }
 
 template <class I>
-I gcd(I m, I n) {
+I gcd(I m, I n) noexcept
+{
     while (n != 0) {
         I t = m % n;
         m = n;
@@ -301,7 +304,8 @@ I gcd(I m, I n) {
 
 // NOTE(peter): Only works for random access iterators
 template <class It>
-void rotate2(It first, It n_first, It last) {
+void rotate2(It first, It n_first, It last) noexcept
+{
     using Distance = typename std::iterator_traits<It>::difference_type;
     using ValueType = typename std::iterator_traits<It>::value_type;
 
@@ -514,6 +518,34 @@ TEST_CASE("Rotate", "rotate using reverse algo")
         REQUIRE(v2 == vs);
         REQUIRE(v1 == v2);
     }
+}
+
+
+namespace my {
+
+template <class Iter>
+void nonadj_rotate(Iter first, Iter first_last, Iter second, Iter second_last) noexcept
+{
+    my::reverse(first, first_last);
+    my::reverse(first_last, second);
+    my::reverse(second, second_last);
+    my::reverse(first, second_last);
+}
+
+} // ~namespace my
+
+TEST_CASE("Problem #5", "More rotate")
+{
+    // Vector rotate functions change the vector ab to ba; how would you transform
+    // the vector abc to cba? (This models the problem of swapping nonadjacent blocks
+    // of memory.)
+
+    // (abc)^4 = (a^r b^r c^r)^r
+
+    std::vector<int> v        = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    std::vector<int> expected = { 7, 8, 9, 4, 5, 6, 1, 2, 3 };
+    my::nonadj_rotate(v.begin(), v.begin()+3, v.begin()+6, v.end());
+    REQUIRE(v == expected);
 }
 
 namespace my {
