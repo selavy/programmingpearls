@@ -37,10 +37,10 @@ Reals<M> recurrence(Reals<K> as, Reals<K+1> cs) noexcept
     }
 
     for (int n = K; n < M; ++n) {
-        std::cout << "Begin iteration: " << n + 1 << "\n";
-        std::cout << "A: "; real_print(as);
-        std::cout << "C: "; real_print(cs);
-        std::cout << "O: "; real_print(output);
+        // std::cout << "Begin iteration: " << n + 1 << "\n";
+        // std::cout << "A: "; real_print(as);
+        // std::cout << "C: "; real_print(cs);
+        // std::cout << "O: "; real_print(output);
 
         // Calculate the new value
         Real r = cs[K];
@@ -58,6 +58,8 @@ Reals<M> recurrence(Reals<K> as, Reals<K+1> cs) noexcept
         output[n] = r;
     }
 
+    // std::cout << "Final Result\nO: "; real_print(output);
+
     return output;
 }
 
@@ -74,29 +76,29 @@ TEST_CASE("Problem #2", "k-th order linear recurrence")
 
     SECTION("Simple case")
     {
-        constexpr int K = 1;
-        constexpr int M = 4;
+        constexpr auto K = 1;
+        constexpr auto M = 4;
         ch3::Reals<K>   as = { 2 };
         ch3::Reals<K+1> cs = { 2, 1 };
         auto output = ch3::recurrence<K, M>(as, cs);
-        std::cout << "\n\nFinal Result:\n";
-        std::cout << "As    : ";
-        for (auto i: as) {
-            std::cout << i << " ";
-        }
-        std::cout << "\n";
+        // std::cout << "\n\nFinal Result:\n";
+        // std::cout << "As    : ";
+        // for (auto i: as) {
+        //     std::cout << i << " ";
+        // }
+        // std::cout << "\n";
 
-        std::cout << "Cs    : ";
-        for (auto i: cs) {
-            std::cout << i << " ";
-        }
-        std::cout << "\n";
+        // std::cout << "Cs    : ";
+        // for (auto i: cs) {
+        //     std::cout << i << " ";
+        // }
+        // std::cout << "\n";
 
-        std::cout << "Output: ";
-        for (auto i: output) {
-            std::cout << i << " ";
-        }
-        std::cout << "\n";
+        // std::cout << "Output: ";
+        // for (auto i: output) {
+        //     std::cout << i << " ";
+        // }
+        // std::cout << "\n";
 
         auto c_1 = cs[0];
         auto c_2 = cs[1];
@@ -109,8 +111,37 @@ TEST_CASE("Problem #2", "k-th order linear recurrence")
         auto a_4 = c_1*a_3 + c_2;
         REQUIRE(output[3] == a_4);
 
-        REQUIRE(output == ch3::Reals<M>{ 2, 5, 11, 23 });
+        REQUIRE(output == ch3::Reals<M>{2, 5, 11, 23});
     }
 
-    
+    SECTION("Harder case")
+    {
+        constexpr auto K = 3;
+        constexpr auto M = 6;
+        ch3::Reals<K>   a = { 1, 5, 7 };
+        ch3::Reals<K+1> c = { 2, 3, 4, 5 };
+        ch3::Reals<M> out = ch3::recurrence<K, M>(a, c);
+
+        auto c_1 = c[0];
+        auto c_2 = c[1];
+        auto c_3 = c[2];
+        auto c_4 = c[3];
+
+        auto a_1 = a[0];
+        auto a_2 = a[1];
+        auto a_3 = a[2];
+
+        REQUIRE(out[0] == a_1);
+        REQUIRE(out[1] == a_2);
+        REQUIRE(out[2] == a_3);
+
+        auto a_4 = c_1*a_3 + c_2*a_2 + c_3*a_1 + c_4;
+        REQUIRE(out[3] == a_4);
+
+        auto a_5 = c_1*a_4 + c_2*a_3 + c_3*a_2 + c_4;
+        REQUIRE(out[4] == a_5);
+
+        auto a_6 = c_1*a_5 + c_2*a_4 + c_3*a_3 + c_4;
+        REQUIRE(out[5] == a_6);
+    }
 }
