@@ -7,3 +7,5 @@
 #include "column_2/problems.cpp"
 
 #include "column_3/problems.cpp"
+
+#include "column_4/problems.cpp"
