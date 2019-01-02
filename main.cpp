@@ -5,3 +5,5 @@
 
 #include "column_2/2.1.a.cpp"
 #include "column_2/problems.cpp"
+
+#include "column_3/problems.cpp"
