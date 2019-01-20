@@ -5,22 +5,37 @@
 #include <algorithm>
 #include "catch.hpp"
 
+std::vector<int> set_sort(const std::vector<int>& input)
+{
+    std::set<int> s;
+    for (int v: input) {
+        s.insert(v);
+    }
+    std::vector<int> rv;
+    for (int v: s) {
+        rv.push_back(v);
+    }
+    return rv;
+}
+
 TEST_CASE("Sort using set factilities", "[column1_1]") {
     std::vector<int> input = { 1, 3, 2, 5, 9, 27, 43, 101, 22 };
-    std::set<int> s;
-    for (auto&& i: input) {
-        s.insert(i);
-    }
-    std::vector<int> output;
-    output.reserve(input.size());
-    for (auto&& i: s) {
-        output.push_back(i);
-    }
+    // std::set<int> s;
+    // for (auto&& i: input) {
+    //     s.insert(i);
+    // }
+    // std::vector<int> output;
+    // output.reserve(input.size());
+    // for (auto&& i: s) {
+    //     output.push_back(i);
+    // }
+
+    std::vector<int> output = set_sort(input);
 
     auto&& in_input = [&input](int i) {
         return std::find(input.begin(), input.end(), i) != input.end();
     };
-    
+
     auto&& in_output = [&output](int i) {
         return std::find(output.begin(), output.end(), i) != output.end();
     };
@@ -31,7 +46,7 @@ TEST_CASE("Sort using set factilities", "[column1_1]") {
     REQUIRE(in_output(222) == false);
     REQUIRE(in_output(22) == true);
 
-    REQUIRE(std::is_sorted(input.begin(), input.end()) == false);    
+    REQUIRE(std::is_sorted(input.begin(), input.end()) == false);
     REQUIRE(std::is_sorted(output.begin(), output.end()) == true);
 
     for (auto&& i: input) {

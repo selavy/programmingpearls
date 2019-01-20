@@ -6,56 +6,81 @@
 #include "bit_vector2.h"
 
 
-class BitVector {
-public:
-    static constexpr size_t MAX_VALUE = 1 << 20;
-    using bit_type = uint32_t;
+[[nodiscard]]
+constexpr uint32_t make_mask(size_t bit) noexcept
+{
+    assert(bit < 32);
+    return static_cast<uint32_t>(1u) << bit;
+}
 
-public:
-    constexpr BitVector() noexcept
-        : bits_{0} {}
+[[nodiscard]]
+constexpr uint32_t setbit(uint32_t bitfield, size_t bit) noexcept
+{
+    return bitfield | make_mask(bit);
+}
 
-    constexpr void set(size_t index) noexcept {
-        bits_ |= mask(index);
+[[nodiscard]]
+constexpr uint32_t clearbit(uint32_t bitfield, size_t bit) noexcept
+{
+    return bitfield & ~make_mask(bit);
+}
+
+[[nodiscard]]
+constexpr bool isset(uint32_t bitfield, size_t bit) noexcept
+{
+    return (bitfield & make_mask(bit)) != 0;
+}
+
+TEST_CASE("C-style set and clear bits", "[column1_2]")
+{
+    uint32_t bf = 0u;
+    for (int i = 0; i < 32; ++i) {
+        REQUIRE(isset(bf, i) == false);
+    }
+    bf = setbit(bf, 0);
+    REQUIRE(bf == 0x01u);
+    REQUIRE(isset(bf, 0) == true);
+
+    bf = clearbit(bf, 0);
+    REQUIRE(bf == 0x00u);
+    REQUIRE(isset(bf, 0) == false);
+
+    for (int i = 0; i < 32; ++i) {
+        REQUIRE(isset(bf, i) == false);
+        bf = setbit(bf, i);
+        REQUIRE(isset(bf, i) == true);
+        bf = clearbit(bf, i);
+        REQUIRE(isset(bf, i) == false);
     }
 
-    constexpr void clear(size_t index) noexcept {
-        bits_ &= ~mask(index);
+    bf = setbit(bf, 31);
+    bf = setbit(bf, 30);
+    bf = setbit(bf, 29);
+    bf = setbit(bf, 28);
+    REQUIRE(bf == 0xF0000000u);
+    REQUIRE(isset(bf, 31) == true);
+    REQUIRE(isset(bf, 30) == true);
+    REQUIRE(isset(bf, 29) == true);
+    REQUIRE(isset(bf, 28) == true);
+    REQUIRE(isset(bf,  0) == false);
+    REQUIRE(isset(bf, 15) == false);
+    REQUIRE(isset(bf, 20) == false);
+
+    bf = 0;
+    for (int i = 0; i < 32; i += 2) {
+        bf = setbit(bf, i);
     }
-
-    constexpr void clear_all() noexcept {
-        bits_ = 0;
+    for (int i = 0; i < 32; ++i) {
+        if (i & 1) {
+            REQUIRE(isset(bf, i) == false);
+        } else {
+            REQUIRE(isset(bf, i) == true);
+        }
     }
-
-    [[nodiscard]] constexpr bool isset(size_t index) const noexcept {
-        return (bits_ & mask(index)) != 0u;
-        // return (bits_ & mask(index)) == mask(index);
-    }
-
-    [[nodiscard]] constexpr bool all() const noexcept {
-        return bits_ == ~bit_type{0};
-    }
-
-    [[nodiscard]] constexpr bool none() const noexcept {
-        return bits_ == bit_type{0};
-    }
-
-private:
-    constexpr bit_type mask(size_t index) const noexcept {
-        assert(sizeof(bit_type)*8 > index);
-        return static_cast<bit_type>(1) << index;
-    }
-
-private:
-    bit_type bits_;
-};
-
+}
 
 TEST_CASE("Set and clear bits first BitVector", "[column1_2]") {
-    // Storage<8> s8;
-    // Storage<1> s1;
-    
-    BitVector bv;
+    BitVector2<32> bv;
     REQUIRE(bv.isset(0) == false);
     REQUIRE(bv.isset(1) == false);
     REQUIRE(bv.isset(3) == false);

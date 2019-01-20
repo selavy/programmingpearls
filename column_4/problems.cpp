@@ -129,3 +129,106 @@ TEST_CASE("Binary Search", "bsearch")
         REQUIRE(ch4::bsearch(vs.begin(), vs.end(), -1) == vs.end());
     }
 }
+
+namespace ch4 {
+
+void print_beans(const std::vector<char>& bs)
+{
+    for (auto b: bs) {
+        printf("%c ", b);
+    }
+    printf("\n");
+}
+
+void simulate(std::vector<char> beans)
+{
+    // while (!beans.empty()) {
+    while (beans.size() >= 2) {
+        print_beans(beans);
+        const auto N = beans.size();
+        auto b1 = beans.back(); beans.pop_back();
+        auto b2 = beans.back(); beans.pop_back();
+        if (b1 == b2) {
+            beans.push_back('B');
+        } else {
+            beans.push_back('W');
+        }
+        assert(beans.size() == N-1); // decreased # of beans on each iteration
+    }
+
+    print_beans(beans);
+}
+
+} // ~namespace ch4
+
+TEST_CASE("Chapter 4 Problem #6", "Coffee Can Problem")
+{
+    char W = 'W';
+    char B = 'B';
+    auto&& make_bag = [](int white, int black) {
+        std::vector<char> out;
+        for (int i = 0; i < white; ++i) {
+            out.push_back('W');
+        }
+        for (int i = 0; i < black; ++i) {
+            out.push_back('B');
+        }
+        return out;
+    };
+    auto beans = make_bag(3, 4);
+    ch4::simulate(beans);
+}
+
+
+namespace ch4 {
+
+using Line  = std::pair<double, double>;
+
+template <class Iter>
+std::pair<Iter, Iter> find_line(Iter first, Iter last, const double x, const double y)
+{
+    std::vector<double> ys;
+    ys.reserve(last - first);
+    for (auto it = first; it != last; ++it) {
+        // y_i = a_i*x + b_i
+        ys.push_back(it->first*x + it->second);
+        printf("%0.1f, %0.1f -> %0.1f\n", it->first, it->second, ys.back());
+    }
+
+    assert(std::is_sorted(ys.begin(), ys.end()));
+    auto lo1 = std::upper_bound(ys.begin(), ys.end(), y);
+    auto hi1 = std::lower_bound(ys.begin(), ys.end(), y);
+
+    auto lo = lo1 != ys.end() ? first + (lo1 - ys.begin()) : last;
+    auto hi = hi1 != ys.end() ? first + (hi1 - ys.begin()) : last;
+
+    // auto&& compare = [x](const Line& line, double y) {
+    //     return (line.first*x + line.second) < y;
+    // };
+    // auto lo = std::lower_bound(first, last, y, compare);
+    // auto hi = std::upper_bound(first, last, y, compare);
+    return std::make_pair(lo, hi);
+}
+
+
+} // ~namespace ch4
+
+TEST_CASE("Chapter 4 Problem #7", "Lines")
+{
+    std::vector<ch4::Line> lines = {
+        {  1., 0.  },
+        {  2., 1.  },
+        { -1., 4.5 },
+    };
+    auto res = ch4::find_line(lines.begin(), lines.end(), 0.5, 1.0);
+    if (res.first != lines.end()) {
+        printf("Lower: (%0.1f, %0.1f)\n", res.first->first, res.first->second);
+    } else {
+        printf("Lower: (unk, unk)\n");
+    }
+    if (res.second != lines.end()) {
+        printf("Upper: (%0.1f, %0.1f)\n", res.second->first, res.second->second);
+    } else {
+        printf("Lower: (unk, unk)\n");
+    }
+}
