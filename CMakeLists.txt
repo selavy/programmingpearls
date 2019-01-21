@@ -9,7 +9,7 @@ target_include_directories(ppearls PUBLIC include)
 add_executable(bitmap_sort column_1/bitmap_sort.cpp)
 set_target_properties(bitmap_sort PROPERTIES CXX_STANDARD 17)
 
-add_executable(bitmap_sort_low_memory bitmap_sort_low_memory.cpp)
+add_executable(bitmap_sort_low_memory column_1/bitmap_sort_low_memory.cpp)
 
 add_executable(set_sort column_1/set_sort.cpp)
 set_target_properties(set_sort PROPERTIES CXX_STANDARD 17)
