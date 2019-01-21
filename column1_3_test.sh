@@ -1,6 +1,7 @@
 #/bin/bash
 
 rm -f output*.txt
+rm -f input.txt
 make -C build/
 make -C optimize_build/
 
