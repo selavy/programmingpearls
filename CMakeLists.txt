@@ -28,4 +28,3 @@ set_target_properties(column1_bitmap_sort_duplicates PROPERTIES CXX_STANDARD 17)
 add_executable(column2_rotate
     column_2/rotate.cpp)
 set_target_properties(column2_rotate PROPERTIES CXX_STANDARD 17)
-
