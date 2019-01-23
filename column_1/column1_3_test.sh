@@ -2,13 +2,13 @@
 
 DEBUG=../build/
 RELEASE=../optimize_build/
-DATA=./test_data
+DATA=./test_data_problem_3
 INPUT=$DATA/input.txt
 
 die() { echo "$*" 1>&2 ; exit 1; }
 
-rm -f output*.txt
-rm -f input.txt
+rm -f $DATA/output*.txt
+rm -f $DATA/input.txt
 make -C $DEBUG && make -C $RELEASE || die "Failed to build correctly!"
 
 mkdir -p $DATA
