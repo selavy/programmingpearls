@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(ppearls)
 
+# All problems that I can do as unit tests:
 add_executable(ppearls main.cpp)
 set_target_properties(ppearls PROPERTIES CXX_STANDARD 17)
 target_include_directories(ppearls PUBLIC include)

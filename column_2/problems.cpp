@@ -34,7 +34,7 @@ TEST_CASE("Problem 2.6.1", "anagrams") {
         return w;
     };
 
-    auto&& contains = [](const std::vector<std::string> &ws, std::string w) {
+    auto&& contains = [](const Dictionary& ws, std::string w) {
         return std::find(ws.begin(), ws.end(), w) != ws.end();
     };
 
@@ -43,7 +43,6 @@ TEST_CASE("Problem 2.6.1", "anagrams") {
     // With no pre-processing
     auto&& find_anagrams1 = [&](std::string word) -> Anagrams {
         Anagrams anagrams;
-        // const std::string word = "deposit";
         const std::string sig = sign(word);
         for (auto&& w: dict) {
             const std::string sig2 = sign(w);
@@ -158,29 +157,9 @@ TEST_CASE("Problem 2.6.2", "duplicate") {
 // stupid ADL...
 namespace my {
 
-// template <class BidirIt>
-// // NOTE(peter): just begin pedantic and enforcing that the iterator is in fact a BidirectionalIterator
-// std::enable_if_t<
-//     std::is_base_of<
-//         std::bidirectional_iterator_tag,
-//         typename std::iterator_traits<BidirIt>::iterator_category
-//     >::value
-// >
-// reverse(BidirIt begin, BidirIt end) {
-//     if (!(begin < end)) {
-//         return;
-//     }
-//     while (begin < --end) {
-//         std::iter_swap(begin++, end);
-//     }
-// }
-
-// To be pedantically correct, BidirectionalIterator does not
-// support operator<
-
 template <typename BidirectionalIt>
 void reverse(BidirectionalIt first, BidirectionalIt last,
-        std::bidirectional_iterator_tag) noexcept
+        std::bidirectional_iterator_tag) noexcept(noexcept(std::iter_swap(first, last)))
 {
     while ((first != last) && (first != --last)) {
         std::iter_swap(first++, last);
@@ -190,7 +169,7 @@ void reverse(BidirectionalIt first, BidirectionalIt last,
 
 template <typename RandomAccessIt>
 void reverse(RandomAccessIt first, RandomAccessIt last,
-        std::random_access_iterator_tag) noexcept
+        std::random_access_iterator_tag) noexcept(noexcept(std::iter_swap(first, last)))
 {
     if (first == last) {
         return;
@@ -201,7 +180,7 @@ void reverse(RandomAccessIt first, RandomAccessIt last,
 }
 
 template <typename BidirectionalIt>
-void reverse(BidirectionalIt first, BidirectionalIt last) noexcept
+void reverse(BidirectionalIt first, BidirectionalIt last) noexcept(noexcept(std::iter_swap(first, last)))
 {
     using iterator_category = typename std::iterator_traits<BidirectionalIt>::iterator_category;
     reverse(first, last, iterator_category());
@@ -227,23 +206,12 @@ void print_range(ForwardIt first, ForwardIt last)
 //              but since I'm using reverse, I have to constrain
 //              to BidirectionIterator.
 
-// template <class ForwardIt>
-// void rotate(ForwardIt first, ForwardIt n_first, ForwardIt last)
 template <class BidirectionalIt>
-void rotate(BidirectionalIt first, BidirectionalIt n_first, BidirectionalIt last) noexcept
+void rotate(BidirectionalIt first, BidirectionalIt n_first, BidirectionalIt last) noexcept(noexcept(my::reverse(first, n_first)))
 {
-    // NOTE(peter): if your swap throws then fuck you
-
-    // n_first - first swaps
     my::reverse(first, n_first);
-    // last - n_first swaps
     my::reverse(n_first, last);
-    // last - first swaps
     my::reverse(first, last);
-    // (n_first - first) + (last - n_first) + (last - first)
-    // = n_first - first + last - n_first + last - first]
-    // = 2*last - 2*first
-    // = 2*(last - first) = O(2N)
 }
 
 template<typename Iter>
@@ -611,6 +579,99 @@ std::string telesign(std::string first, std::string last) noexcept
     return rv;
 }
 
+
+const static std::map<char, char> ButtonMap2 = {
+    { 'A', '2'},
+    { 'B', '2'},
+    { 'C', '2'},
+
+    { 'D', '3'},
+    { 'E', '3'},
+    { 'F', '3'},
+
+    { 'G', '4'},
+    { 'H', '4'},
+    { 'I', '4'},
+
+    { 'J', '5'},
+    { 'K', '5'},
+    { 'L', '5'},
+
+    { 'M', '6'},
+    { 'N', '6'},
+    { 'O', '6'},
+
+    { 'P', '7'},
+    { 'Q', '7'},
+    { 'R', '7'},
+    { 'S', '7'},
+
+    { 'T', '8'},
+    { 'U', '8'},
+    { 'V', '8'},
+
+    { 'W', '9'},
+    { 'X', '9'},
+    { 'Y', '9'},
+    { 'Z', '9'},
+};
+
+[[nodiscard]]
+std::string telesign2(std::string first, std::string last) noexcept
+{
+    std::string rv;
+    for (auto c: last) {
+        auto found = ButtonMap2.find(std::toupper(c));
+        if (found != ButtonMap2.end()) {
+            rv += found->second;
+        }
+    }
+    rv += '*';
+
+    for (auto c: first) {
+        auto found = ButtonMap2.find(std::toupper(c));
+        if (found != ButtonMap2.end()) {
+            rv += found->second;
+        }
+        break;
+    }
+    rv += '*';
+    return rv;
+}
+
+const char ButtonMap3[64] = {
+    '0', '2', '2', '2', '3', '3', '3', '4',
+    '4', '4', '5', '5', '5', '6', '6', '6',
+    '7', '7', '7', '7', '8', '8', '8', '9',
+    '9', '9', '9', '0', '0', '0', '0', '0',
+    '0', '2', '2', '2', '3', '3', '3', '4',
+    '4', '4', '5', '5', '5', '6', '6', '6',
+    '7', '7', '7', '7', '8', '8', '8', '9',
+    '9', '9', '9', '0', '0', '0', '0', '0',
+};
+
+[[nodiscard]]
+char Lookup3(char c) noexcept
+{
+    return ButtonMap3[(c & 0x7F) - 64];
+}
+
+[[nodiscard]]
+std::string telesign3(std::string first, std::string last) noexcept
+{
+    std::string rv;
+    rv.reserve(last.size() + 3);
+    for (auto c: last) {
+        rv += Lookup3(c);
+    }
+    rv += '*';
+    if (!first.empty()) {
+        rv += Lookup3(first[0]);
+    }
+    rv += '*';
+    return rv;
+}
+
 } // ~namespace my
 
 TEST_CASE("Problem #6", "Push-button telephone")
@@ -650,16 +711,6 @@ TEST_CASE("Problem #6", "Push-button telephone")
         cache[sig].push_back(c);
     }
 
-    // for (auto&& c: cache) {
-    //     auto&& sig = c.first;
-    //     auto&& names = c.second;
-    //     std::cout << sig << " => ";
-    //     for (auto&& name: names) {
-    //         std::cout << name.first << " " << name.second << ", ";
-    //     }
-    //     std::cout << "\n";
-    // }
-
     using Results = std::vector<Name>;
     auto&& lookup = [&cache](const std::string& sig) -> Results {
         auto&& found = cache.find(sig);
@@ -668,4 +719,24 @@ TEST_CASE("Problem #6", "Push-button telephone")
 
     REQUIRE(lookup("5375*6*") == Results{Name{"Mike", "Lesk"}});
     REQUIRE(lookup("5377543*7*") == Results{Name{"Peter", "Lesslie"}});
+}
+
+TEST_CASE("Problem #6 Extended", "Fast Test Cases")
+{
+    std::vector<std::pair<std::string, std::string>> test_cases = {
+        { "Mike", "Lesk" },
+        { "Peter", "Lesslie" },
+        { "Mike", "Pall" },
+        { "George", "Bush" },
+        { "Bill", "Clinton" },
+        { "Donald", "Trump" },
+        { "Barack", "Obama" },
+    };
+
+    for (auto&& name: test_cases) {
+        std::cout << "Checking case " << name.first << " " << name.second << "\n";
+        auto result1 = my::telesign2(name.first, name.second);
+        auto result2 = my::telesign3(name.first, name.second);
+        REQUIRE(result1 == result2);
+    }
 }
