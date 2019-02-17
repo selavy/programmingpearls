@@ -734,7 +734,7 @@ TEST_CASE("Problem #6 Extended", "Fast Test Cases")
     };
 
     for (auto&& name: test_cases) {
-        std::cout << "Checking case " << name.first << " " << name.second << "\n";
+        // std::cout << "Checking case " << name.first << " " << name.second << "\n";
         auto result1 = my::telesign2(name.first, name.second);
         auto result2 = my::telesign3(name.first, name.second);
         REQUIRE(result1 == result2);

@@ -65,7 +65,160 @@ Iter bsearch(Iter first, Iter last, const T& value) {
     return found != last && *found == value ? found : last;
 }
 
+// NOTE(peter): this is how he sets it up in the book
+// but the half open interval is definitely the way to
+// go.
+int bsearch2(int t, int *x, int n)
+{
+    /*
+     * precondition: x[0] <= x[1] <= ... <= x[n-1]
+     * postcondition:
+     *     result == -1    => t not present in x
+     *     0 <= result < n => x[result] == t
+     */
+
+
+    // auto&& mustbe = [x, t](int lo, int hi) {
+    //     for (int i = lo; i <= hi; ++i) {
+    //         if (x[i] == t)
+    //             return;
+    //     }
+    //     assert(false && "invariant violated");
+    // };
+
+    int l = 0;
+    int u = n - 1;
+    int m;
+    while (l <= u) {
+        // mustbe(l, u);
+        // m = (l + u) / 2; // l + ((u - l) / 2)
+        m = l + ((u - l) / 2);
+        if (x[m] < t) {
+            l = m + 1;
+            // mustbe(l, u);
+        } else if (x[m] == t) {
+            return m;
+        } else { // x[m] > t
+            u = m - 1;
+            // mustbe(l, u);
+        }
+    }
+    return -1;
+}
+
+namespace recursive {
+
+int go(int t, int *x, int l, int u)
+{
+    if (l > u)        return -1;
+    int m = l + ((u - l) / 2);
+    if (x[m] < t)       return go(t, x, m+1, u);
+    else if (x[m] == t) return m;
+    else                return go(t, x, l, m-1);
+}
+
+} // namespace recursive
+
+int bsearch_recursive(int t, int *x, int n) { return recursive::go(t, x, 0, n-1); }
+
+int exp(int x, int n)
+{
+    // pre:  n >= 0
+    // post: result = x^n
+    auto&& square = [](int x) { return x*x; };
+    if (n == 0)
+        return 1;
+    else if (n % 2 == 0)
+        return square(exp(x, n/2));
+    else
+        return x*exp(x, n-1);
+}
+
+int exp2(int x, int n)
+{
+    int result = x;
+    int i;
+    printf("exp2(x=%d, n=%d)\n", x, n);
+    for (i = 1; i <= n;) {
+        printf("\ti=%d, result=%d\n", i, result);
+        if (i % 2 == 1) {
+            result *= x;
+            i = i + 1;
+        } else {
+            result *= result;
+            i = i * 2;
+        }
+    }
+    printf("\tloop exit: i=%d, result=%d\n", i, result);
+    // TODO: i think this can just be 1 loop iteration max
+    while (i-- > n) {
+        result /= x;
+    }
+    printf("exp2(x=%d, n=%d) = %d\n\n", x, n, result);
+    return result;
+}
+
 } // ~namespace ch4
+
+TEST_CASE("Exp", "recursive")
+{
+    std::vector<std::tuple<int, int, int>> vs = {
+        // x,  n, expected
+        {  2,  2,    4 },
+        {  3,  3,   27 },
+        {  4,  4,  256 },
+        {  2,  4,   16 },
+        {  2,  5,   32 },
+        {  2,  6,   64 },
+        {  2,  7,  128 },
+        {  2,  8,  256 },
+        {  2,  9,  512 },
+        {  2, 10, 1024 },
+    };
+
+    for (auto&& t : vs) {
+        auto x = std::get<0>(t);
+        auto n = std::get<1>(t);
+        auto expected = std::get<2>(t);
+        auto result = ch4::exp(x, n);
+        auto r2 = ch4::exp2(x, n);
+        REQUIRE(result == expected);
+        REQUIRE(r2 == expected);
+    }
+}
+
+TEST_CASE("Binary Search #2", "c bsearch")
+{
+    SECTION("odd elements") {
+        std::vector<int> vs = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+        for (auto it : vs) {
+            int i = ch4::bsearch2(it, vs.data(), vs.size());
+            int i2 = ch4::bsearch_recursive(it, vs.data(), vs.size());
+            REQUIRE(vs[i] == it);
+            REQUIRE(vs[i2] == it);
+            REQUIRE(i == i2);
+        }
+        int i = ch4::bsearch2(42, vs.data(), vs.size());
+        int i2 = ch4::bsearch_recursive(42, vs.data(), vs.size());
+        REQUIRE(i == -1);
+        REQUIRE(i2 == -1);
+    }
+
+    SECTION("even elements") {
+        std::vector<int> vs = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        for (auto it : vs) {
+            int i = ch4::bsearch2(it, vs.data(), vs.size());
+            int i2 = ch4::bsearch_recursive(it, vs.data(), vs.size());
+            REQUIRE(vs[i] == it);
+            REQUIRE(vs[i2] == it);
+            REQUIRE(i == i2);
+        }
+        int i = ch4::bsearch2(42, vs.data(), vs.size());
+        int i2 = ch4::bsearch_recursive(42, vs.data(), vs.size());
+        REQUIRE(i == -1);
+        REQUIRE(i2 == -1);
+    }
+}
 
 TEST_CASE("Binary Search", "bsearch")
 {
@@ -134,10 +287,10 @@ namespace ch4 {
 
 void print_beans(const std::vector<char>& bs)
 {
-    for (auto b: bs) {
-        printf("%c ", b);
-    }
-    printf("\n");
+//     for (auto b: bs) {
+//         printf("%c ", b);
+//     }
+//     printf("\n");
 }
 
 void simulate(std::vector<char> beans)
@@ -192,7 +345,7 @@ std::pair<Iter, Iter> find_line(Iter first, Iter last, const double x, const dou
     for (auto it = first; it != last; ++it) {
         // y_i = a_i*x + b_i
         ys.push_back(it->first*x + it->second);
-        printf("%0.1f, %0.1f -> %0.1f\n", it->first, it->second, ys.back());
+        // printf("%0.1f, %0.1f -> %0.1f\n", it->first, it->second, ys.back());
     }
 
     assert(std::is_sorted(ys.begin(), ys.end()));
@@ -221,14 +374,14 @@ TEST_CASE("Chapter 4 Problem #7", "Lines")
         { -1., 4.5 },
     };
     auto res = ch4::find_line(lines.begin(), lines.end(), 0.5, 1.0);
-    if (res.first != lines.end()) {
-        printf("Lower: (%0.1f, %0.1f)\n", res.first->first, res.first->second);
-    } else {
-        printf("Lower: (unk, unk)\n");
-    }
-    if (res.second != lines.end()) {
-        printf("Upper: (%0.1f, %0.1f)\n", res.second->first, res.second->second);
-    } else {
-        printf("Lower: (unk, unk)\n");
-    }
+//     if (res.first != lines.end()) {
+//         printf("Lower: (%0.1f, %0.1f)\n", res.first->first, res.first->second);
+//     } else {
+//         printf("Lower: (unk, unk)\n");
+//     }
+//     if (res.second != lines.end()) {
+//         printf("Upper: (%0.1f, %0.1f)\n", res.second->first, res.second->second);
+//     } else {
+//         printf("Lower: (unk, unk)\n");
+//     }
 }
