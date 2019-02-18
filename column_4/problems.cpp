@@ -136,25 +136,32 @@ int exp(int x, int n)
 
 int exp2(int x, int n)
 {
+    if (n == 0) {
+        return 1;
+    }
     int result = x;
-    int i;
-    printf("exp2(x=%d, n=%d)\n", x, n);
-    for (i = 1; i <= n;) {
-        printf("\ti=%d, result=%d\n", i, result);
-        if (i % 2 == 1) {
-            result *= x;
-            i = i + 1;
-        } else {
-            result *= result;
-            i = i * 2;
+    int i = 1;
+    for (; i <= n/2; i *= 2) {
+        result *= result;
+    }
+    for (; i < n; ++i) {
+        result *= x;
+    }
+    return result;
+}
+
+int exp3(int x, int n) {
+    int result = 1;
+    for (;;) {
+        if (n % 2 == 1) {
+            result = result * x;
         }
+        n = n / 2;
+        if (n == 0) {
+            break;
+        }
+        x = x * x;
     }
-    printf("\tloop exit: i=%d, result=%d\n", i, result);
-    // TODO: i think this can just be 1 loop iteration max
-    while (i-- > n) {
-        result /= x;
-    }
-    printf("exp2(x=%d, n=%d) = %d\n\n", x, n, result);
     return result;
 }
 
@@ -164,16 +171,23 @@ TEST_CASE("Exp", "recursive")
 {
     std::vector<std::tuple<int, int, int>> vs = {
         // x,  n, expected
-        {  2,  2,    4 },
-        {  3,  3,   27 },
-        {  4,  4,  256 },
-        {  2,  4,   16 },
-        {  2,  5,   32 },
-        {  2,  6,   64 },
-        {  2,  7,  128 },
-        {  2,  8,  256 },
-        {  2,  9,  512 },
-        {  2, 10, 1024 },
+        {  2,  0,      1 },
+        {  2,  1,      2 },
+        { 27,  0,      1 },
+        {  2,  2,      4 },
+        {  3,  3,     27 },
+        {  4,  4,    256 },
+        {  2,  4,     16 },
+        {  2,  5,     32 },
+        {  2,  6,     64 },
+        {  2,  7,    128 },
+        {  2,  8,    256 },
+        {  2,  9,    512 },
+        {  2, 10,   1024 },
+        {  3, 10,  59049 },
+        { 10,  4,  10000 },
+        { 10,  5, 100000 },
+        { 27,  3,  19683 },
     };
 
     for (auto&& t : vs) {
@@ -182,8 +196,12 @@ TEST_CASE("Exp", "recursive")
         auto expected = std::get<2>(t);
         auto result = ch4::exp(x, n);
         auto r2 = ch4::exp2(x, n);
+        auto r3 = ch4::exp3(x, n);
+        auto r4 = std::pow(x, n);
         REQUIRE(result == expected);
         REQUIRE(r2 == expected);
+        REQUIRE(r3 == expected);
+        REQUIRE(static_cast<int>(r4) == expected);
     }
 }
 
@@ -335,53 +353,64 @@ TEST_CASE("Chapter 4 Problem #6", "Coffee Can Problem")
 
 namespace ch4 {
 
-using Line  = std::pair<double, double>;
-
 template <class Iter>
 std::pair<Iter, Iter> find_line(Iter first, Iter last, const double x, const double y)
 {
-    std::vector<double> ys;
-    ys.reserve(last - first);
-    for (auto it = first; it != last; ++it) {
-        // y_i = a_i*x + b_i
-        ys.push_back(it->first*x + it->second);
-        // printf("%0.1f, %0.1f -> %0.1f\n", it->first, it->second, ys.back());
-    }
-
-    assert(std::is_sorted(ys.begin(), ys.end()));
-    auto lo1 = std::upper_bound(ys.begin(), ys.end(), y);
-    auto hi1 = std::lower_bound(ys.begin(), ys.end(), y);
-
-    auto lo = lo1 != ys.end() ? first + (lo1 - ys.begin()) : last;
-    auto hi = hi1 != ys.end() ? first + (hi1 - ys.begin()) : last;
-
-    // auto&& compare = [x](const Line& line, double y) {
-    //     return (line.first*x + line.second) < y;
-    // };
-    // auto lo = std::lower_bound(first, last, y, compare);
-    // auto hi = std::upper_bound(first, last, y, compare);
-    return std::make_pair(lo, hi);
+    auto&& compare = [x](double y, std::pair<double, double> p) noexcept -> bool {
+        return y < (x*p.first + p.second);
+    };
+    auto hi = std::upper_bound(first, last, y, compare);
+    return std::make_pair(hi - 1, hi);
 }
-
 
 } // ~namespace ch4
 
+namespace std {
+
+std::ostream& operator<<(std::ostream& os, std::pair<double, double> p) {
+    os << "(" << p.first << ", " << p.second << ")";
+    return os;
+}
+
+} // namespace std
+
 TEST_CASE("Chapter 4 Problem #7", "Lines")
 {
-    std::vector<ch4::Line> lines = {
+    std::vector<std::pair<double, double>> lines = {
         {  1., 0.  },
         {  2., 1.  },
         { -1., 4.5 },
     };
-    auto res = ch4::find_line(lines.begin(), lines.end(), 0.5, 1.0);
-//     if (res.first != lines.end()) {
-//         printf("Lower: (%0.1f, %0.1f)\n", res.first->first, res.first->second);
-//     } else {
-//         printf("Lower: (unk, unk)\n");
-//     }
-//     if (res.second != lines.end()) {
-//         printf("Upper: (%0.1f, %0.1f)\n", res.second->first, res.second->second);
-//     } else {
-//         printf("Lower: (unk, unk)\n");
-//     }
+
+    auto first = lines.begin();
+    auto last = lines.end();
+    using vec_iter = std::vector<std::pair<double, double>>::iterator;
+
+    std::vector<std::tuple<std::pair<double, double>, vec_iter, vec_iter>> tc = {
+        // point       , lower line  , upper line
+        { { 0.5, 1.0 }, first + 0, first + 1 },
+        { { 0.5, 3.0 }, first + 1, first + 2 },
+        { { 0.5, 4.5 }, first + 2, last      },
+    };
+
+    for (auto&& t : tc) {
+        auto&& pt = std::get<0>(t);
+        auto&& lo = std::get<1>(t);
+        auto&& hi = std::get<2>(t);
+        auto res = ch4::find_line(lines.begin(), lines.end(), pt.first, pt.second);
+        REQUIRE(*res.first  == *lo);
+        if (hi == lines.end()) {
+            REQUIRE(res.second == hi);
+        } else {
+            REQUIRE(*res.second == *hi);
+        }
+    }
+
+    // {
+    // auto res = ch4::find_line(lines.begin(), lines.end(), 0.5, 1.0);
+    // REQUIRE(*res.first  == std::make_pair(1., 0.));
+    // REQUIRE(*res.second == std::make_pair(2., 1.));
+    // }
+
+
 }
