@@ -155,51 +155,18 @@ C copy_sort(C c) {
 }
 
 TEST_CASE("QuickSort2", "[qs2]") {
-    {
-        std::vector<int> vs = { 5, 1, 6, 3, 4, 8 };
-        auto expected = copy_sort(vs);
-        ch11::qsort2(vs.begin(), vs.end());
-        // REQUIRE(std::is_sorted(vs.begin(), vs.end()));
-        REQUIRE(vs == expected);
-    }
+    std::vector<std::vector<int>> tests = {
+        { 5, 1, 6, 3, 4, 8 },
+        { 1, 1, 1, 1 },
+        { 1, 2, 3, 4 },
+        { 1, 2, 3 },
+        { 5, 6, 7, 7, 1, 2, 10, 9, 8, 2 },
+        { 5, 6, 7, 7, 1, 2, 10, 9, 8, 2, 1 },
+    };
 
-    {
-        std::vector<int> vs = { 1, 1, 1, 1 };
+    for (auto&& vs : tests) {
         auto expected = copy_sort(vs);
         ch11::qsort2(vs.begin(), vs.end());
-        // REQUIRE(std::is_sorted(vs.begin(), vs.end()));
-        REQUIRE(vs == expected);
-    }
-
-    {
-        std::vector<int> vs = { 1, 2, 3, 4 };
-        auto expected = copy_sort(vs);
-        ch11::qsort2(vs.begin(), vs.end());
-        // REQUIRE(std::is_sorted(vs.begin(), vs.end()));
-        REQUIRE(vs == expected);
-    }
-
-    {
-        std::vector<int> vs = { 1, 2, 3 };
-        auto expected = copy_sort(vs);
-        ch11::qsort2(vs.begin(), vs.end());
-        // REQUIRE(std::is_sorted(vs.begin(), vs.end()));
-        REQUIRE(vs == expected);
-    }
-
-    {
-        std::vector<int> vs = { 5, 6, 7, 7, 1, 2, 10, 9, 8, 2 };
-        auto expected = copy_sort(vs);
-        ch11::qsort2(vs.begin(), vs.end());
-        // REQUIRE(std::is_sorted(vs.begin(), vs.end()));
-        REQUIRE(vs == expected);
-    }
-
-    {
-        std::vector<int> vs = { 5, 6, 7, 7, 1, 2, 10, 9, 8, 2, 1 };
-        auto expected = copy_sort(vs);
-        ch11::qsort2(vs.begin(), vs.end());
-        // REQUIRE(std::is_sorted(vs.begin(), vs.end()));
         REQUIRE(vs == expected);
     }
 }
