@@ -16,17 +16,26 @@ bool is_partitioned(I begin, I end, I mid, C cmp) {
 
 template <class I>
 I partition(I begin, I end) {
-    using ValueType = typename std::iterator_traits<I>::value_type;
+    auto lo = begin;
+    auto hi = end;
+    for (;;) {
+        do { ++lo; } while (lo < end && *lo < *begin);
+        do { --hi; } while (            *hi > *begin);
+        if (!(lo < hi)) {
+            break;
+        }
+        std::iter_swap(lo, hi);
+    }
+    std::iter_swap(begin, hi);
+    return hi;
+}
 
-    // partition [begin, end) around *begin
+#if 0
+template <class I>
+I partition(I begin, I end) {
     auto lo = begin + 1;
     auto hi = end - 1;
     while (lo < hi) {
-        // invariant: [begin + 1, lo ) <= *begin
-        // invariant: (hi       , end) >= *begin
-        assert(is_partitioned(begin + 1, lo , begin, std::less_equal<>{}));
-        assert(is_partitioned(hi    + 1, end, begin, std::greater_equal<>{}));
-
         if (!(*lo > *begin)) {
             ++lo;
         } else if (!(*hi < *begin)) {
@@ -34,33 +43,30 @@ I partition(I begin, I end) {
         } else {
             std::iter_swap(lo++, hi--);
         }
-
-        assert(is_partitioned(begin + 1, lo , begin, std::less_equal<>{}));
-        assert(is_partitioned(hi    + 1, end, begin, std::greater_equal<>{}));
     }
-
     auto mid = lo - 1;
     if (*begin > *lo) {
         mid = lo;
     }
     std::iter_swap(begin, mid);
-
-    // assert is partitioned
-    assert(is_partitioned(begin  , mid, mid, std::less_equal<>{}));
-    assert(is_partitioned(mid + 1, end, mid, std::greater_equal<>{}));
-
     return mid;
 }
+#endif
 
 template <class I>
-void qsort(I begin, I end) {
-    auto count = end - begin;
-    if (count <= 1) {
-        return;
+I partition3(I begin, I end) {
+    auto i = begin;
+    auto j = end;
+    for (;;) {
+        do { ++i; } while (i < end && *i < *begin);
+        do { --j; } while (*j > *begin);
+        if (!(i < j)) {
+            break;
+        }
+        std::iter_swap(i, j);
     }
-    auto mid = partition(begin, end);
-    qsort(begin, mid);
-    qsort(mid + 1, end);
+    std::iter_swap(begin, j);
+    return j;
 }
 
 template <class I>
@@ -83,13 +89,39 @@ I partition2(I l, I u)
 }
 
 template <class I>
-void qsort2(I l, I u) {
-    if ((u - l) <= 1) {
+void qsort1(I begin, I end) {
+    auto count = end - begin;
+    if (count <= 1) {
         return;
     }
-    auto m = partition2(l, u);
-    qsort2(l, m);
-    qsort2(m+1, u);
+    auto mid = partition(begin, end);
+    // assert(std::is_partitioned(begin, end, [mid](auto x) { return x < *mid; }));
+    qsort1(begin, mid);
+    qsort1(mid + 1, end);
+}
+
+template <class I>
+void qsort2(I begin, I end) {
+    auto count = end - begin;
+    if (count <= 1) {
+        return;
+    }
+    auto mid = partition2(begin, end);
+    // assert(std::is_partitioned(begin, end, [mid](auto x) { return x < *mid; }));
+    qsort2(begin, mid);
+    qsort2(mid + 1, end);
+}
+
+template <class I>
+void qsort3(I begin, I end) {
+    auto count = end - begin;
+    if (count <= 1) {
+        return;
+    }
+    auto mid = partition3(begin, end);
+    // assert(std::is_partitioned(begin, end, [mid](auto x) { return x < *mid; }));
+    qsort3(begin, mid);
+    qsort3(mid + 1, end);
 }
 
 } /*ch11*/
@@ -111,9 +143,16 @@ TEST_CASE("QuickSort", "[qs]") {
     };
 
     for (auto&& vs : tests) {
-        auto expected = copy_sort(vs);
-        ch11::qsort(vs.begin(), vs.end());
-        REQUIRE(vs == expected);
+        auto v1 = vs;
+        ch11::qsort1(v1.begin(), v1.end());
+        auto v2 = vs;
+        ch11::qsort2(v2.begin(), v2.end());
+        auto v3 = vs;
+        ch11::qsort3(v3.begin(), v3.end());
+        std::sort(vs.begin(), vs.end());
+        REQUIRE(v1 == vs);
+        REQUIRE(v2 == vs);
+        REQUIRE(v3 == vs);
     }
 }
 
