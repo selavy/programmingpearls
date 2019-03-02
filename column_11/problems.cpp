@@ -30,29 +30,6 @@ I partition(I begin, I end) {
     return hi;
 }
 
-#if 0
-template <class I>
-I partition(I begin, I end) {
-    auto lo = begin + 1;
-    auto hi = end - 1;
-    while (lo < hi) {
-        if (!(*lo > *begin)) {
-            ++lo;
-        } else if (!(*hi < *begin)) {
-            --hi;
-        } else {
-            std::iter_swap(lo++, hi--);
-        }
-    }
-    auto mid = lo - 1;
-    if (*begin > *lo) {
-        mid = lo;
-    }
-    std::iter_swap(begin, mid);
-    return mid;
-}
-#endif
-
 template <class I>
 I partition3(I begin, I end) {
     auto i = begin;
@@ -124,6 +101,19 @@ void qsort3(I begin, I end) {
     qsort3(mid + 1, end);
 }
 
+template <class ForwardIt>
+void qsort4(ForwardIt first, ForwardIt last)
+{
+    if(first == last) return;
+    auto pivot = *std::next(first, std::distance(first,last)/2);
+    ForwardIt middle1 = std::partition(first, last, 
+            [pivot](const auto& em){ return em < pivot; });
+    ForwardIt middle2 = std::partition(middle1, last, 
+            [pivot](const auto& em){ return !(pivot < em); });
+    qsort4(first, middle1);
+    qsort4(middle2, last);
+}
+
 } /*ch11*/
 
 template <class C>
@@ -149,10 +139,14 @@ TEST_CASE("QuickSort", "[qs]") {
         ch11::qsort2(v2.begin(), v2.end());
         auto v3 = vs;
         ch11::qsort3(v3.begin(), v3.end());
+        auto v4 = vs;
+        ch11::qsort4(v4.begin(), v4.end());
+
         std::sort(vs.begin(), vs.end());
         REQUIRE(v1 == vs);
         REQUIRE(v2 == vs);
         REQUIRE(v3 == vs);
+        REQUIRE(v4 == vs);
     }
 }
 
