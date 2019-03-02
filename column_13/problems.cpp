@@ -73,6 +73,49 @@ struct IntSetArray {
 };
 
 struct IntSetList {
+    struct Node {
+        Node(int v, Node* n = nullptr) : next(n), val(v) {}
+        ~Node() {
+            if (next != nullptr) {
+                delete next;
+            }
+        }
+        Node* next;
+        int val;
+    };
+
+    IntSetList(int maxelements, int maxval)
+        : _head(new Node(maxval))
+    {
+    }
+
+    const Node* head() const {
+        return _head;
+    }
+
+    void insert(int t) {
+        Node* cur = _head;
+        while (cur->val < t) {
+            cur = cur->next;
+        }
+        if (cur->val == t) {
+            return;
+        }
+        Node* n = new Node(cur->val, cur->next);
+        cur->val = t;
+        cur->next = n;
+    }
+
+    template <class F>
+    void visit(F f) {
+        Node* c = _head;
+        while (c->next != nullptr) {
+            f(c->val);
+            c = c->next;
+        }
+    }
+
+    Node* _head;
 };
 
 template <class C>
@@ -101,4 +144,21 @@ TEST_CASE("IntSetArray", "isa")
     ia.insert(100);
     ia.insert(0);
     printer(ia);
+}
+
+TEST_CASE("IntSetList", "isl")
+{
+    using namespace ch13;
+
+    IntSetList ia(10, 400);
+    ia.insert(1);
+    printf(">> "); ia.visit([](int x) { printf("%d ", x); }); printf("\n");
+    ia.insert(2);
+    ia.insert(2);
+    ia.insert(3);
+    ia.insert(6);
+    printf(">> "); ia.visit([](int x) { printf("%d ", x); }); printf("\n");
+    ia.insert(4);
+    printf(">> "); ia.visit([](int x) { printf("%d ", x); }); printf("\n");
+
 }
